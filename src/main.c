@@ -1,196 +1,158 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <unistd.h>
 #include <string.h>
-#include <gccore.h>
 #include <malloc.h>
+#include <gccore.h>
 
-#include <fat.h>
-#include <sdcard/gcsd.h>
-#include <sdcard/wiisd_io.h>
-#include <ogc/usbstorage.h>
-
+#include "config.h"
+#include "video.h"
 #include "dolloader_dol.h"
 
-#define BC 0x0000000100000100ULL
+// special values and addresses
+#define BC              0x0000000100000100ULL
+#define PI_CMD_REG      0xCC003024
+#define ADDR_ENTRYPOINT 0xE0
 
-char filepath[3][32] = {
-	{"fat:/apps/Swiss/swiss.dol"},
-	{"fat:/apps/swiss.dol"},
-	{"fat:/swiss.dol"}
-};
-
-const DISC_INTERFACE* devices(int index) {
-	switch (index) {
-		case 0: return &__io_gcsdb;
-		case 1:	return &__io_gcsda;
-		case 2:	default: return &__io_wiisd;
-		case 3:	return &__io_usbstorage;
-	}
-};
-
-const char* deviceNames(int index) {
-	switch (index) {
-		case 0: return "<gcsdb>";
-		case 1:	return "<gcsda>";
-		case 2:	default: return "<wiisd>";
-		case 3:	return "<usbstorage>";
-	}
-}
-
-static tikview view ATTRIBUTE_ALIGN(32);
-
-// Prevent IOS36 loading at startup
+// override to block IOS36 from loading at startup
 s32 __IOS_LoadStartupIOS() { return 0; }
 
-// setup basic terminal. commentated example:
-// https://github.com/devkitPro/gamecube-examples/blob/master/devices/dvd/readsector/source/dvd.c
-void initVideo() {
-	VIDEO_Init();
-	GXRModeObj* vMode = VIDEO_GetPreferredMode(NULL);
-	VIDEO_Configure(vMode);
-	void* fb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(vMode));
-	CON_Init(fb, 20, 64, vMode->fbWidth, vMode->xfbHeight, vMode->fbWidth * 2);
-	VIDEO_ClearFrameBuffer(vMode, fb, COLOR_BLACK);
-	VIDEO_SetNextFramebuffer(fb);
-	VIDEO_SetBlack(false);
-	VIDEO_Flush();
-	VIDEO_WaitVSync();
-	if(vMode->viTVMode & VI_NON_INTERLACE) { VIDEO_WaitVSync (); }
-}
+// error handling (errno is also defined by <errno.h>)
+char* errStr;
+int ret;
 
-void storageShutdown(int index) {
-	fatUnmount("fat");
-	devices(index)->shutdown();
-}
+// forward declarations
+int go();
+int fail();
 
-int storageInit(int index) {
-	//storageShutdown(index);
-	const DISC_INTERFACE* storage = devices(index);
-	if(!storage->startup()) { return -1; }
-	if(!fatMountSimple("fat", storage)) { storageShutdown(index); return -2; }
-	return 0;
-}
-
+// loads a Dol file into memory
 int loadGCDol(FILE* fp) {
-	u32 filesize = 0;
-	u8 *offset;
-	u32 buffer;
-	
+	u32 filesize = 0;	// size of Dol
+	u32 entrypoint;     // address of main() in Dol
+	u8* baseAddress;	// address to load Dol to in RAM
+	// set filesize
 	fseek(fp, 0, SEEK_END);
 	filesize = ftell(fp);
-	fseek(fp, 0, SEEK_SET);
-
-	if (filesize <= 0x100) { return -5; }
-	fseek(fp, 0xe0, SEEK_SET);
-	fread(&buffer, 4, 1, fp);
-	
-	if (buffer > 0x80700000) {
-		offset = (u8 *)0x80100000;
+	if (filesize <= 0x100) { errStr = "swiss.dol's header is too small (<256B); file corrupted?"; return -5; }
+	// set entrypoint
+	fseek(fp, ADDR_ENTRYPOINT, SEEK_SET);
+	fread(&entrypoint, 4, 1, fp);
+	if (entrypoint < 0x80000000 || entrypoint >= 0x81800000) { errStr = "swiss.dol's entrypoint isn't a valid pointer; file corrupted?"; return -6; }
+	// set baseAddress
+	if (entrypoint > 0x80700000) {
+		baseAddress = (u8*)0x80100000;
 	} else {
-		offset = (u8 *)0x80A00000;
-		memset((void *)0x80100000, 0, 32);
-		DCFlushRange((char *)0x80100000, 32);
-		ICInvalidateRange((char *)0x80100000, 32);
+		baseAddress = (u8*)0x80A00000;
+		memset((void*)0x80100000, 0, 32);
+		DCFlushRange((char*)0x80100000, 32);
+		ICInvalidateRange((char*)0x80100000, 32);
 	}
-	
+	// read full swiss.dol into memory at baseAddress
 	fseek(fp, 0, SEEK_SET);
-	fread(offset, filesize, 1, fp);
-	DCFlushRange(offset, filesize);
-	ICInvalidateRange(offset, filesize);				
+	fread(baseAddress, filesize, 1, fp);
+	DCFlushRange(baseAddress, filesize);
+	ICInvalidateRange(baseAddress, filesize);				
 	return 0;
 };
 
-int findandLoadSwiss() {
+// finds a Dol file on a device and loads it into memory
+int findandLoadGCDol() {
 	s32 err = 0;
 	static char buf[128];
 	FILE* fp = NULL;
-	bool dol_found = false;
+	bool dolLoaded = false;
 
-	err = !fatInitDefault(); // seems to be required now; must unmount "usb" and "sd" at end
-	if (err != 0) { return -3; }
+	err = devicesInit();
+	if (err != 0) { errStr = "Failed to start file driver; ensure there's at least 1 device, remove any dodgy ones, and try again."; return -3; }
 	for (int i = 0; i < 4; i++) {
-		err = storageInit(i);
+		err = deviceStart(devices[i]);
 		if (err == 0) {
-			printf("Device mounted: %s.\n", deviceNames(i));
+			printf("Device mounted: %s.\n", devices[i].name);
 			for (int j = 0; j < 3; j++) {
-				snprintf(buf, 128, filepath[j]);
+				snprintf(buf, 128, filepaths[j]);
 				fp = fopen(buf, "rb");
 				if (fp != NULL)	{
-					printf("- File opened: %s%s.\n", deviceNames(i), filepath[j]+3);
+					printf("- File opened: %s%s.\n", devices[i].name, filepaths[j]+3);
+					printf("Loading file to RAM...\n");
 					err = loadGCDol(fp);
 					fclose(fp);
 					if (err != 0) { return err; }
-					printf("Loading Swiss from %s%s\n", deviceNames(i), filepath[j]+3);
-					dol_found = true;
+					dolLoaded = true;
 					break;
 				} else {
-					printf("- File not read: %s%s.\n", deviceNames(i), filepath[j]+3);
+					printf("x | %s: %s%s.\n", strerror(errno), devices[i].name, filepaths[j]+3);
 				}
 			}
-			storageShutdown(i);
-			if (dol_found) { break; }
+			deviceStop(devices[i]);
+			if (dolLoaded) { break; }
 		} else {
-			printf("Device not read: %s [%d].\n", deviceNames(i), err);
+			errStr = err == -1 ? "Device didn't start (probably unplugged)" : "Device didn't mount";
+			printf("%s: %s.\n", devices[i].name, errStr);
 		}
 	}
-	fatUnmount("sd");
-	fatUnmount("usb");
-	
-	if (dol_found == false) { return -4; }
+	devicesClear();
+	if (dolLoaded == false) { errStr = "swiss.dol not found; consult the readme for allowed locations."; return -4; }
+	return 0;
+}
+
+// boots a Dol from memory
+static tikview view ATTRIBUTE_ALIGN(32); // static for alignment ig?
+int bootGCDol() {
+	videoShow(false);
+	// copy the integrated DolLoader into RAM
+	memcpy((void*)0x80800000, dolloader_dol, dolloader_dol_size);
+	DCFlushRange((char*)0x80800000, dolloader_dol_size);
+	ICInvalidateRange((char*)0x80800000, dolloader_dol_size);
+	// tell the cMIOS to load the DolLoader
+	memset((void*)0x807FFFE0, 0, 32);
+	strcpy((char*)0x807FFFE0, "gchomebrew dol");
+	DCFlushRange((char*)0x807FFFE0, 32);
+	ICInvalidateRange((char*)0x807FFFE0, 32);
+	// get ticket
+	ret = ES_GetTicketViews(BC, &view, 1);
+	if (ret != 0) {	errStr = "(ES_GetTicketViews)"; return ret; }
+	// trigger gc mode
+	*(volatile unsigned int *)PI_CMD_REG |= 7;
+	// launch
+	ret = ES_LaunchTitle(BC, &view);
+	if (ret != 0) {	errStr = "(ES_LaunchTitle)"; return ret; }
+	return 0;
+}
+
+int go() {
+	videoClear();
+	videoShow(true);
+	printf("Wii Swiss Booter (v1.0)\n");
+	printf("=======================\n\n");
+	ret = findandLoadGCDol();
+	if (ret != 0) { return fail(); }; 
+	printf("Starting...\n");
+	while (PAD_ScanPads()) { // while controller connected, stall if A held 
+		VIDEO_WaitVSync();
+		if ((~PAD_ButtonsHeld(0)) & PAD_BUTTON_A) { break; }
+	}
+	ret = bootGCDol();
+	if (ret != 0) { return fail(); };
+	return 0;
+}
+
+int fail() {
+	videoShow(true);
+	printf("ERROR | %s [%d]\n", errStr, ret);
+	printf("Press A to retry or B to exit.\n");
+	while(PAD_ScanPads()) { // while controller connected, await input 
+		VIDEO_WaitVSync();
+		u32 pressed = PAD_ButtonsDown(0);
+		if (pressed & PAD_BUTTON_A) { return go(); }
+		if (pressed & PAD_BUTTON_B) { break; }
+	}
+	printf("Exiting...\n");
 	return 0;
 }
 
 int main(int argc, char* argv[]) {
-	char* error;
-	int ret;
-
-	initVideo();
-	printf("Wii Swiss Booter\n");
-	printf("================\n\n");
-
-	ret = findandLoadSwiss();
-	if (ret != 0) { error = "ERROR | (findandLoadSwiss)"; goto fail; }; 
-	
-	printf("* O *\n");
-
-	// Copy the integrated DolLoader
-	memcpy((void *)0x80800000, dolloader_dol, dolloader_dol_size);
-	DCFlushRange((char *)0x80800000, dolloader_dol_size);
-	ICInvalidateRange((char *)0x80800000, dolloader_dol_size);
-
-	// Tell the cMIOS to load the DolLoader
-	memset((void *)0x807FFFE0, 0, 32);
-	strcpy((char *)0x807FFFE0, "gchomebrew dol");
-	DCFlushRange((char *)0x807FFFE0, 32);
-	ICInvalidateRange((char *)0x807FFFE0, 32);
-
-	ret = ES_GetTicketViews(BC, &view, 1);
-	if (ret != 0) {	error = "ERROR | (ES_GetTicketViews)"; goto fail; }
-	
-	*(volatile unsigned int *)0xCC003024 |= 7;
-	
-	printf("Starting...\n");
-	sleep(1);
-
-	VIDEO_SetBlack(true);
-	VIDEO_Flush();
-	VIDEO_WaitVSync();
-
-	ret = ES_LaunchTitle(BC, &view);
-	if (ret != 0) {	error = "ERROR | (ES_LaunchTitle)"; goto fail; }
-
-	return 0;
-
-fail:
-	printf("%s %d\n", error, ret);
-	printf("Press any button to exit.\n");
+	videoInit();
 	PAD_Init();
-	while(true) {
-		VIDEO_WaitVSync();
-		PAD_ScanPads();
-		if (PAD_ButtonsDown(0)) { break; }
-	}
-	printf("Exiting...\n");
-	return 0;
+	return go();
 }
