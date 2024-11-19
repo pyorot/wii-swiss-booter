@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<app version="1.0">
+<name>Wii Swiss Booter</name>
+<version>0.3</version>
+	<release_date>200001012000</release_date>
+<coder>WiiPower</coder>
+<short_description>This application boots Swiss</short_description>
+<long_description>This application is NOT Swiss, it does only boot it as gamecube homebrew. Currently the homebrew channel can't boot gamecube homebrew in gamecube mode, which is why this application is required at all.
+
+REQUIREMENTS:
+- A patched MIOS, which allows booting gamecube homebrew, needs to be installed
+
+Where does it load Swiss from?
+This application tries to load Swiss from SD-Gecko slot b, slot a, front sd and from usb storage, in that order. The filepaths where the Swiss executable is expected are:
+"/apps/Swiss/swiss.dol" and "/swiss.dol"</long_description>
+</app>

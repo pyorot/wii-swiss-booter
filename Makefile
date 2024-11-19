@@ -16,9 +16,10 @@ include $(DEVKITPPC)/wii_rules
 # INCLUDES is a list of directories containing extra header files
 #---------------------------------------------------------------------------------
 TARGET		:=	boot
-BUILD		:=	build
-SOURCES		:=	source
-DATA		:=	data  
+TARGETDIR	:=	_build
+BUILD		:=	_lib
+SOURCES		:=	src
+DATA		:=	_data
 INCLUDES	:=
 
 #---------------------------------------------------------------------------------
@@ -26,7 +27,7 @@ INCLUDES	:=
 #---------------------------------------------------------------------------------
 CFLAGS	= -g -Os -Wall $(MACHDEP) $(INCLUDE)
 ASFLAGS = $(MACHDEP) $(INCLUDE) -D_LANGUAGE_ASSEMBLY
-CXXFLAGS	=	$(CFLAGS)
+CXXFLAGS= $(CFLAGS)
 
 LDFLAGS	= -g $(MACHDEP) -Wl,-Map,$(notdir $@).map -Wl,--section-start,.init=0x80dfff00
 #---------------------------------------------------------------------------------
@@ -47,7 +48,7 @@ LIBDIRS	:= $(DEVKITPPC)/lib $(CURDIR)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(TARGETDIR)/$(TARGET)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
@@ -90,22 +91,23 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES), -iquote $(CURDIR)/$(dir)) \
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
 					-L$(LIBOGC_LIB)
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(TARGETDIR)/$(TARGET)
 .PHONY: $(BUILD) clean
 
 #---------------------------------------------------------------------------------
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
+	@mkdir -p $(TARGETDIR)
 	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(OUTPUT).elf $(OUTPUT).dol
+	@rm -fr "./$(BUILD)" "./$(TARGETDIR)"
 
 #---------------------------------------------------------------------------------
 run:
-	wiiload $(TARGET).dol
+	wiiload $(TARGETDIR)/$(TARGET).dol
 
 
 #---------------------------------------------------------------------------------

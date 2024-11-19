@@ -17,7 +17,7 @@ include $(DEVKITPPC)/gamecube_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	dolloader
 BUILD		:=	build
-SOURCES		:=	source
+SOURCES		:=	src
 DATA		:=	data  
 INCLUDES	:=
 
@@ -26,7 +26,7 @@ INCLUDES	:=
 #---------------------------------------------------------------------------------
 
 CFLAGS	= -g -Os -Wall $(MACHDEP) $(INCLUDE)
-CXXFLAGS	=	$(CFLAGS)
+CXXFLAGS=	$(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 
