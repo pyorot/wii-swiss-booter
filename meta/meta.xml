@@ -2,7 +2,7 @@
 <app version="1.0">
 <name>Wii Swiss Booter</name>
 <version>1.0</version>
-	<release_date>202411192250</release_date>
+	<release_date>202411200904</release_date>
 <coder>WiiPower, shoutplenty</coder>
 <short_description>Boots Swiss in GameCube mode.</short_description>
 <long_description>This booter finds Swiss on your removable media and boots it as native GameCube software.

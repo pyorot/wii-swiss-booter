@@ -4,7 +4,6 @@
 GXRModeObj* _vMode;
 void* _fb;
 
-// on program startup (configure registers, video mode, frame buffer)
 void videoInit() {
 	VIDEO_Init();
 	_vMode = VIDEO_GetPreferredMode(NULL);
@@ -12,14 +11,12 @@ void videoInit() {
 	_fb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(_vMode));
 }
 
-// clear console
 void videoClear() {
 	CON_Init(_fb, 20, 64, _vMode->fbWidth, _vMode->xfbHeight, _vMode->fbWidth * 2);
 	VIDEO_ClearFrameBuffer(_vMode, _fb, COLOR_BLACK);
 	VIDEO_SetNextFramebuffer(_fb);
 }
 
-// toggle showing video vs black screen (hides transitions)
 void videoShow(bool show) {
 	VIDEO_SetBlack(!show);
 	VIDEO_Flush();

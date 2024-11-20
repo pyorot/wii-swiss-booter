@@ -1,32 +1,20 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <unistd.h>
+#include <stdio.h>
 #include <string.h>
-#include <malloc.h>
+#include <errno.h>
 #include <gccore.h>
 
+#include "booter.h"
 #include "config.h"
-#include "video.h"
-#include "dolloader_dol.h"
-
-// special values and addresses
-#define BC              0x0000000100000100ULL
-#define PI_CMD_REG      0xCC003024
-#define ADDR_ENTRYPOINT 0xE0
-
-// override to block IOS36 from loading at startup
-s32 __IOS_LoadStartupIOS() { return 0; }
+#include "dolloader_dol.h" // generated in /_lib
 
 // error handling (errno is also defined by <errno.h>)
 char* errStr;
 int ret;
 
-// forward declarations
-int go();
-int fail();
+// override to block IOS36 from loading at startup
+s32 __IOS_LoadStartupIOS() { return 0; }
 
-// loads a Dol file into memory
 int loadGCDol(FILE* fp) {
 	u32 filesize = 0;	// size of Dol
 	u32 entrypoint;     // address of main() in Dol
@@ -34,11 +22,11 @@ int loadGCDol(FILE* fp) {
 	// set filesize
 	fseek(fp, 0, SEEK_END);
 	filesize = ftell(fp);
-	if (filesize <= 0x100) { errStr = "swiss.dol's header is too small (<256B); file corrupted?"; return -5; }
+	if (filesize <= 0x100) { errStr = "Dol file's header is too small (<256B); file corrupted?"; return -5; }
 	// set entrypoint
 	fseek(fp, ADDR_ENTRYPOINT, SEEK_SET);
 	fread(&entrypoint, 4, 1, fp);
-	if (entrypoint < 0x80000000 || entrypoint >= 0x81800000) { errStr = "swiss.dol's entrypoint isn't a valid pointer; file corrupted?"; return -6; }
+	if (entrypoint < 0x80000000 || entrypoint >= 0x81800000) { errStr = "Dol file's entrypoint isn't a valid pointer; file corrupted?"; return -6; }
 	// set baseAddress
 	if (entrypoint > 0x80700000) {
 		baseAddress = (u8*)0x80100000;
@@ -48,7 +36,7 @@ int loadGCDol(FILE* fp) {
 		DCFlushRange((char*)0x80100000, 32);
 		ICInvalidateRange((char*)0x80100000, 32);
 	}
-	// read full swiss.dol into memory at baseAddress
+	// read full Dol file into memory at baseAddress
 	fseek(fp, 0, SEEK_SET);
 	fread(baseAddress, filesize, 1, fp);
 	DCFlushRange(baseAddress, filesize);
@@ -56,7 +44,6 @@ int loadGCDol(FILE* fp) {
 	return 0;
 };
 
-// finds a Dol file on a device and loads it into memory
 int findandLoadGCDol() {
 	s32 err = 0;
 	static char buf[128];
@@ -91,8 +78,7 @@ int findandLoadGCDol() {
 			printf("%s: %s.\n", devices[i].name, errStr);
 		}
 	}
-	devicesClear();
-	if (dolLoaded == false) { errStr = "swiss.dol not found; consult the readme for allowed locations."; return -4; }
+	if (dolLoaded == false) { errStr = "Dol file not found; consult the readme for allowed locations."; return -4; }
 	return 0;
 }
 
@@ -123,8 +109,7 @@ int bootGCDol() {
 int go() {
 	videoClear();
 	videoShow(true);
-	printf("Wii Swiss Booter (v1.0)\n");
-	printf("=======================\n\n");
+	printf(WELCOME_TEXT);
 	ret = findandLoadGCDol();
 	if (ret != 0) { return fail(); }; 
 	printf("Starting...\n");
