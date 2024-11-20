@@ -1,6 +1,6 @@
 # Wii Swiss Booter
 
-Runs [Swiss](https://github.com/emukidid/swiss-gc/) on a Wii, and is easily adapted to booting general GameCube software in GameCube mode.
+Finds and boots [Swiss](https://github.com/emukidid/swiss-gc/) on a Wii in native GameCube mode using a cMIOS, and can be easily adapted to general GameCube software. It is needed because the Homebrew Channel cannot boot into GameCube mode by itself.
 
 Original program by WiiPower (version 0.3 from 2011/01/15). Icon by Cisz. Check out the [program's thread](https://gbatemp.net/threads/wii-swiss-booter.277350/).
 

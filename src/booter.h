@@ -2,6 +2,10 @@
 #include <fat.h>
 
 // == video.c: a basic terminal ==
+#define CON_RED(str)		"\x1b[31;1m" str "\x1b[39m" // console text colours
+#define CON_GREEN(str)		"\x1b[32;1m" str "\x1b[39m"
+#define CON_MAGENTA(str)	"\x1b[35;1m" str "\x1b[39m"
+#define CON_CYAN(str)		"\x1b[36;1m" str "\x1b[39m"
 void videoInit();           // on program startup (configure registers, video mode, frame buffer)
 void videoClear();          // clear console
 void videoShow(bool show);  // toggle showing video vs black screen (hides transitions)

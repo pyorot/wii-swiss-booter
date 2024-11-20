@@ -2,19 +2,16 @@
 <app version="1.0">
 <name>Wii Swiss Booter</name>
 <version>1.0</version>
-	<release_date>202411200904</release_date>
+	<release_date>202411201040</release_date>
 <coder>WiiPower, shoutplenty</coder>
 <short_description>Boots Swiss in GameCube mode.</short_description>
-<long_description>This booter finds Swiss on your removable media and boots it as native GameCube software.
-
-The Homebrew Channel can't boot GameCube homebrew in GameCube mode, which is why this application is required. You also need to have a cMIOS installed.
+<long_description>This booter finds Swiss on your removable media and boots it in native GameCube mode. You need to have a cMIOS installed.
 
 To find Swiss, this app checks, in order:
-  SD Gecko (right slot), SD Gecko (left slot), Wii SD (front slot), either USB port.
+  SD Gecko (left slot), SD Gecko (right slot), Wii SD (front slot), either USB port.
 On each, it checks, in order:
-  "/apps/Swiss/swiss.dol", "/apps/swiss.dol", "/swiss.dol"
+  "/apps/Swiss/swiss.dol", "/apps/swiss.dol", "/swiss.dol".
 
-You can hold A to stall the app to see where it found Swiss.
-</long_description>
+You can hold A to stall the app to see where it found Swiss.</long_description>
 <no_ios_reload/>
 </app>

@@ -55,12 +55,13 @@ int findandLoadGCDol() {
 	for (int i = 0; i < 4; i++) {
 		err = deviceStart(devices[i]);
 		if (err == 0) {
-			printf("Device mounted: %s.\n", devices[i].name);
+			printf(CON_MAGENTA("%s") ": device mounted.\n", devices[i].name);
 			for (int j = 0; j < 3; j++) {
-				snprintf(buf, 128, filepaths[j]);
+				snprintf(buf, 5, "fat:");
+				snprintf(buf+4, 124, filepaths[j]);
 				fp = fopen(buf, "rb");
 				if (fp != NULL)	{
-					printf("- File opened: %s%s.\n", devices[i].name, filepaths[j]+3);
+					printf(CON_GREEN("o | File opened: %s:%s.\n"), devices[i].name, filepaths[j]);
 					printf("Loading file to RAM...\n");
 					err = loadGCDol(fp);
 					fclose(fp);
@@ -68,14 +69,14 @@ int findandLoadGCDol() {
 					dolLoaded = true;
 					break;
 				} else {
-					printf("x | %s: %s%s.\n", strerror(errno), devices[i].name, filepaths[j]+3);
+					printf("x | %s: " CON_MAGENTA("%s") ":" CON_CYAN("%s") ".\n", strerror(errno), devices[i].name, filepaths[j]);
 				}
 			}
 			deviceStop(devices[i]);
 			if (dolLoaded) { break; }
 		} else {
-			errStr = err == -1 ? "Device didn't start (probably unplugged)" : "Device didn't mount";
-			printf("%s: %s.\n", devices[i].name, errStr);
+			errStr = err == -1 ? "device didn't start (probably unplugged)" : CON_RED("ERROR | device didn't mount");
+			printf(CON_MAGENTA("%s") ": %s.\n", devices[i].name, errStr);
 		}
 	}
 	if (dolLoaded == false) { errStr = "Dol file not found; consult the readme for allowed locations."; return -4; }
@@ -124,7 +125,7 @@ int go() {
 
 int fail() {
 	videoShow(true);
-	printf("ERROR | %s [%d]\n", errStr, ret);
+	printf(CON_RED("ERROR | %s [%d]\n"), errStr, ret);
 	printf("Press A to retry or B to exit.\n");
 	while(PAD_ScanPads()) { // while controller connected, await input 
 		VIDEO_WaitVSync();
