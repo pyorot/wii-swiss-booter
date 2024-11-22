@@ -11,13 +11,13 @@ const device devices[4] = {
 	{ "<wii-usb--(any)-->", &__io_usbstorage }
 };
 
-const char filepaths[3][32] = {
-	{"/apps/Swiss/swiss.dol"},
-	{"/apps/swiss.dol"},
-	{"/swiss.dol"}
+const char* filepaths[3] = {
+	"/apps/Swiss/swiss.dol",
+	"/apps/swiss.dol",
+	"/swiss.dol"
 };
 
 #define WELCOME_TEXT	"Wii Swiss Booter (v1.0)\n"\
 						"=======================\n"\
 						"\n"\
-						"This program will find and load the Dol file 'swiss.dol'.\n"
+						"This program will find and load the Dol file \"swiss.dol\".\n"

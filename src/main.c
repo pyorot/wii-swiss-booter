@@ -1,16 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 #include <gccore.h>
 
 #include "booter.h"
 #include "config.h"
 #include "dolloader_dol.h" // generated in /_lib
 
-// error handling (errno is also defined by <errno.h>)
-char* errStr;
-int ret;
+char* errStr = "";
+int ret = 0;
 
 // override to block IOS36 from loading at startup
 s32 __IOS_LoadStartupIOS() { return 0; }
@@ -22,11 +20,11 @@ int loadGCDol(FILE* fp) {
 	// set filesize
 	fseek(fp, 0, SEEK_END);
 	filesize = ftell(fp);
-	if (filesize <= 0x100) { errStr = "Dol file's header is too small (<256B); file corrupted?"; return -5; }
+	if (filesize <= 0x100) { errStr = "Dol file's header is too small (<256B); file corrupted?"; return ERR_DOL_SIZE; }
 	// set entrypoint
 	fseek(fp, ADDR_ENTRYPOINT, SEEK_SET);
 	fread(&entrypoint, 4, 1, fp);
-	if (entrypoint < 0x80000000 || entrypoint >= 0x81800000) { errStr = "Dol file's entrypoint isn't a valid pointer; file corrupted?"; return -6; }
+	if (entrypoint < 0x80000000 || entrypoint >= 0x81800000) { errStr = "Dol file's entrypoint isn't a valid pointer; file corrupted?"; return ERR_DOL_ENTRY; }
 	// set baseAddress
 	if (entrypoint > 0x80700000) {
 		baseAddress = (u8*)0x80100000;
@@ -45,27 +43,26 @@ int loadGCDol(FILE* fp) {
 };
 
 int findandLoadGCDol() {
-	s32 err = 0;
 	static char buf[128];
 	FILE* fp = NULL;
 	bool dolLoaded = false;
 
-	err = devicesInit();
-	if (err != 0) { errStr = "Failed to start file driver; ensure there's at least 1 device, remove any dodgy ones, and try again."; return -3; }
-	for (int i = 0; i < 4; i++) {
-		err = deviceStart(devices[i]);
-		if (err == 0) {
+	ret = devicesInit();
+	if (ret != 0) { errStr = "Failed to start file driver; ensure there's at least 1 device, remove any dodgy ones, and try again (you might need to exit the app)."; return ERR_FATINIT; }
+	for (int i = 0; i < sizeof(devices)/sizeof(device); i++) {
+		ret = deviceStart(devices[i]);
+		if (ret == 0) {
 			printf(CON_MAGENTA("%s") ": device mounted.\n", devices[i].name);
-			for (int j = 0; j < 3; j++) {
+			for (int j = 0; j < sizeof(filepaths)/sizeof(char*); j++) {
 				snprintf(buf, 5, "fat:");
 				snprintf(buf+4, 124, filepaths[j]);
 				fp = fopen(buf, "rb");
 				if (fp != NULL)	{
 					printf(CON_GREEN("o | File opened: %s:%s.\n"), devices[i].name, filepaths[j]);
 					printf("Loading file to RAM...\n");
-					err = loadGCDol(fp);
+					ret = loadGCDol(fp);
 					fclose(fp);
-					if (err != 0) { return err; }
+					if (ret != 0) { return ret; }
 					dolLoaded = true;
 					break;
 				} else {
@@ -75,11 +72,12 @@ int findandLoadGCDol() {
 			deviceStop(devices[i]);
 			if (dolLoaded) { break; }
 		} else {
-			errStr = err == -1 ? "device didn't start (probably unplugged)" : CON_RED("ERROR | device didn't mount");
+			// non-fatal error (intended behaviour)
+			errStr = ret == -1 ? "device didn't start (probably unplugged)" : CON_YELLOW("device didn't mount");
 			printf(CON_MAGENTA("%s") ": %s.\n", devices[i].name, errStr);
 		}
 	}
-	if (dolLoaded == false) { errStr = "Dol file not found; consult the readme for allowed locations."; return -4; }
+	if (dolLoaded == false) { errStr = "Dol file not found; consult the readme for allowed locations."; return ERR_NOTFOUND; }
 	return 0;
 }
 
@@ -103,7 +101,7 @@ int bootGCDol() {
 	*(volatile unsigned int *)PI_CMD_REG |= 7;
 	// launch
 	ret = ES_LaunchTitle(BC, &view);
-	if (ret != 0) {	errStr = "(ES_LaunchTitle)"; return ret; }
+	if (ret != 0) {	errStr = "(ES_LaunchTitle)"; return ret; } // probably only triggered if BC is broken
 	return 0;
 }
 
@@ -113,7 +111,7 @@ int go() {
 	printf(WELCOME_TEXT);
 	ret = findandLoadGCDol();
 	if (ret != 0) { return fail(); }; 
-	printf("Starting...\n");
+	printf("Booting Dol...\n");
 	while (PAD_ScanPads()) { // while controller connected, stall if A held 
 		VIDEO_WaitVSync();
 		if ((~PAD_ButtonsHeld(0)) & PAD_BUTTON_A) { break; }
@@ -129,9 +127,8 @@ int fail() {
 	printf("Press A to retry or B to exit.\n");
 	while(PAD_ScanPads()) { // while controller connected, await input 
 		VIDEO_WaitVSync();
-		u32 pressed = PAD_ButtonsDown(0);
-		if (pressed & PAD_BUTTON_A) { return go(); }
-		if (pressed & PAD_BUTTON_B) { break; }
+		if (PAD_ButtonsDown(0) & PAD_BUTTON_A) { return go(); }
+		if (PAD_ButtonsDown(0) & PAD_BUTTON_B) { break; }
 	}
 	printf("Exiting...\n");
 	return 0;

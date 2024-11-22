@@ -5,7 +5,7 @@ Finds and boots [Swiss](https://github.com/emukidid/swiss-gc/) on a Wii in nativ
 Original program by WiiPower (version 0.3 from 2011/01/15). Icon by Cisz. Check out the [program's thread](https://gbatemp.net/threads/wii-swiss-booter.277350/).
 
 ## Setup
-Extract the latest release into A:/apps/, where A is your portable SD card or USB stick. The folder structure should look like `A:/apps/Swiss/boot.dol` (same for `icon.png` and `meta.xml`). If so, it will appear and be startable from the Homebrew Channel.
+Extract the latest release .7z file into the root of your portable SD card or USB stick. The folder structure should look like `A:/apps/Swiss/boot.dol` (same for `icon.png` and `meta.xml`). If so, it will appear and be startable from the Homebrew Channel.
 
 This app requires a cMIOS, whose installer is available [here](https://www.mediafire.com/file/4utullykvbe2xlu/cMIOSWiiGator.7z/file). Run it from the Homebrew Channel as described in the previous paragraph. This in turn requires a cIOS, installed as per [here](https://wii.hacks.guide/cios).
 
@@ -13,10 +13,10 @@ This app also requires a copy of Swiss of course, which can be downloaded from [
 
 ## Usage
 When you run Swiss Booter, it will look for `swiss.dol` and start the first copy it finds, searching in the order:
-1. SD Gecko (in GC memory card slot B)
-2. SD Gecko (in GC memory card slot A)
-3. SD Card (in Wii)
-4. USB Drive (in Wii)
+1. SD Gecko (in left GC memory card slot)
+2. SD Gecko (in right GC memory card slot)
+3. SD Card (in front Wii slot)
+4. USB Drive (in either Wii slot)
 
 Within each drive, it searches in the order:
 1. `A:/apps/Swiss/swiss.dol`
