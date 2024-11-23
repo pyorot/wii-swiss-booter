@@ -1,3 +1,3 @@
-[submodule "libruntimeiospatch"]
-	path = libruntimeiospatch
+[submodule "librip"]
+	path = librip
 	url = https://gitlab.com/shoutplenty/libruntimeiospatch

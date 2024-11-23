@@ -1,4 +1,10 @@
+# for our (out-of-tree) build folder settings
 _build
 _cache
 _data
 _lib
+# for devkitpro's default (in-tree) build folder settings
+build
+*.a
+*.dol
+*.elf

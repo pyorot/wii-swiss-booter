@@ -1,4 +1,4 @@
-cd libruntimeiospatch
+cd librip
 make clean
 make
 mkdir -p ../_lib

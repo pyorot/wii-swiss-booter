@@ -20,7 +20,7 @@ TARGETDIR	:=	_build
 BUILD		:=	_cache
 SOURCES		:=	src
 DATA		:=	_data
-INCLUDES	:=  libruntimeiospatch/source
+INCLUDES	:=  librip/source
 
 #---------------------------------------------------------------------------------
 # options for code generation

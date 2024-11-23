@@ -76,7 +76,7 @@ int testMIOS() {
         } else if (mios.outcome == MIOS_ORIGINAL) {
             printf(CON_YELLOW("- This is an original unmodded MIOS that cannot load homebrew.\n"));
         }
-        printf("- Visit this app's GitHub readme to install the standard cMIOS to load homebrew.\n");
+        printf("- Visit this app's GitHub readme to install the standard cMIOS for homebrew.\n");
     }
     if (mios.outcome == MIOS_ORIGINAL || mios.outcome == CMIOS_PAYLOAD) { errStr = "Incompatible MIOS"; return ERR_MIOS_LOOKUP; }
     return 0;
