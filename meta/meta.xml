@@ -13,5 +13,5 @@ On each, it checks, in order:
   "/apps/Swiss/swiss.dol", "/apps/swiss.dol", "/swiss.dol".
 
 You can hold A to stall the app to see where it found Swiss.</long_description>
-<no_ios_reload/>
+<ahb_access/>
 </app>

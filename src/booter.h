@@ -12,8 +12,10 @@
 extern char* errStr;
 extern int ret;
 enum OurErrors {
-	ERR_MIOS_LOOKUP = -1,	ERR_FATINIT = -2,	ERR_NOTFOUND = -3,		// common
-	ERR_MIOS_SIZE = -11,	ERR_DOL_SIZE = -12,	ERR_DOL_ENTRY = -13,	// rare
+	ERR_DENIED = -1,			ERR_MIOS_LOOKUP = -2,	// common
+	ERR_FATINIT = -3,			ERR_NOTFOUND = -4,		// common
+	ERR_MIOS_NOTFOUND = -11,	ERR_MIOS_SIZE = -12,	// rare
+	ERR_DOL_SIZE = -13,			ERR_DOL_ENTRY = -14,	// rare
 };
 
 // == video.c: a basic terminal ==
@@ -22,6 +24,7 @@ enum OurErrors {
 #define CON_YELLOW(str)		"\x1b[33;1m" str "\x1b[39m"
 #define CON_MAGENTA(str)	"\x1b[35;1m" str "\x1b[39m"
 #define CON_CYAN(str)		"\x1b[36;1m" str "\x1b[39m"
+#define CON_CLEAR()			"\x1b[2J" // signal text to clear console
 void videoInit();           // on program startup (configure registers, video mode, frame buffer)
 void videoClear();          // clear console
 void videoShow(bool show);  // toggle showing video vs black screen (hides transitions)
@@ -34,6 +37,9 @@ typedef struct {
 int devicesInit();						// newly-required init routine (calls fatInitDefault)
 void deviceStop(device dev);			// dismount then shut-down of device
 int deviceStart(device dev);			// startup then mount of device
+
+//  == check.c ==					
+int testMIOS();							// tests if cMIOS is installed
 
 // == main.c ==
 int loadGCDol(FILE* fp);				// loads the Dol file into memory

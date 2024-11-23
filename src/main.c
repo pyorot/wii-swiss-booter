@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include <gccore.h>
 
 #include "booter.h"
@@ -82,7 +83,7 @@ int findandLoadGCDol() {
 }
 
 // boots a Dol from memory
-static tikview view ATTRIBUTE_ALIGN(32); // static for alignment ig?
+static tikview view ATTRIBUTE_ALIGN(32);   // requires alignment, so static
 int bootGCDol() {
 	videoShow(false);
 	// copy the integrated DolLoader into RAM
@@ -109,6 +110,14 @@ int go() {
 	videoClear();
 	videoShow(true);
 	printf(WELCOME_TEXT);
+	VIDEO_WaitVSync(); // required to hold up program to detect button presses during init
+	if (PAD_ScanPads()) { // run setup tests if A held 
+		if (PAD_ButtonsHeld(0) & PAD_BUTTON_A) {
+			printf("Running tests...\n");
+			ret = testMIOS();
+			if (ret != 0) { return fail(); }
+		}
+	}
 	ret = findandLoadGCDol();
 	if (ret != 0) { return fail(); }; 
 	printf("Booting Dol...\n");
@@ -127,7 +136,7 @@ int fail() {
 	printf("Press A to retry or B to exit.\n");
 	while(PAD_ScanPads()) { // while controller connected, await input 
 		VIDEO_WaitVSync();
-		if (PAD_ButtonsDown(0) & PAD_BUTTON_A) { return go(); }
+		if (PAD_ButtonsDown(0) & PAD_BUTTON_A) { printf(CON_CLEAR()); usleep(300000); return go(); }
 		if (PAD_ButtonsDown(0) & PAD_BUTTON_B) { break; }
 	}
 	printf("Exiting...\n");

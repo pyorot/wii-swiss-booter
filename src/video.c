@@ -9,10 +9,10 @@ void videoInit() {
 	_vMode = VIDEO_GetPreferredMode(NULL);
 	VIDEO_Configure(_vMode);
 	_fb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(_vMode));
+	CON_Init(_fb, 0, 64, _vMode->fbWidth, _vMode->xfbHeight, _vMode->fbWidth * 2);
 }
 
 void videoClear() {
-	CON_Init(_fb, 20, 64, _vMode->fbWidth, _vMode->xfbHeight, _vMode->fbWidth * 2);
 	VIDEO_ClearFrameBuffer(_vMode, _fb, COLOR_BLACK);
 	VIDEO_SetNextFramebuffer(_fb);
 }
