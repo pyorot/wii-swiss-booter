@@ -1,0 +1,3 @@
+[submodule "libruntimeiospatch"]
+	path = libruntimeiospatch
+	url = https://gitlab.com/shoutplenty/libruntimeiospatch

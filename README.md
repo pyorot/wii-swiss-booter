@@ -26,10 +26,14 @@ Within each drive, it searches in the order:
 Tip: since the program doesn't ordinarily wait around for you to read where it loaded Swiss from, you can stall it yourself by holding A.
 
 ## Compilation
-It is recommended to use Linux or WSL, since the build scripts are Linux commands. libogc is required; install it via [these instructions](https://devkitpro.org/wiki/Getting_Started) – for the Unix-like instructions, select the `wii-dev` group.
+It is recommended to use Linux or WSL, since the build scripts are Linux commands. To set up:
+- **libogc** is required; install it via [these instructions](https://devkitpro.org/wiki/Getting_Started) – for the Unix-like instructions, select the `wii-dev` group.
+- Ensure you have also [cloned the libruntimeiospatch submodule](https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules), which should appear in a folder within the root folder.
 
-To compile, run commands in the repository root on in a bash shell:
-1. Run `./makeDolLoader.sh` to compile the DolLoader binary into /_data.
-2. With the DolLoader binary in /_data, run `make` to produce the result in /_build and intermediate files in /_lib.
-3. The `boot.dol` file in /_build can be placed in the meta folder for a complete homebrew channel app.
-4. `_build`, `_data` and `_lib` can be deleted at any time.
+To compile, package and clean up, run commands in the repository root in a bash shell:
+1. **make/dl.sh** compiles the DolLoader binary to `/_data/dolloader.dol`.
+2. **make/lrip.sh** compiles the libruntimeiospatch library to `/_lib/libruntimeiospatch.a`.
+3. With these two files generated, run **make** to compile the end product to `/_build/boot.dol` and `/_build/boot.elf`. This generates intermediate files in `/_cache`.
+4. This `boot.dol` file can be placed in the meta folder for a complete Homebrew Channel app package.
+5. To avoid stale data, rebuild everything from scratch now and again by running **make/all.sh**.
+6. `_build`, `_cache`, `_data` and `_lib` can be deleted at any time.

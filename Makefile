@@ -17,10 +17,10 @@ include $(DEVKITPPC)/wii_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	boot
 TARGETDIR	:=	_build
-BUILD		:=	_lib
+BUILD		:=	_cache
 SOURCES		:=	src
 DATA		:=	_data
-INCLUDES	:=
+INCLUDES	:=  libruntimeiospatch/source
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -33,7 +33,7 @@ LDFLAGS	= -g $(MACHDEP) -Wl,-Map,$(notdir $@).map -Wl,--section-start,.init=0x80
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=-lfat -lwiiuse -lbte -lmad -lm -logc
+LIBS	:=-lfat -lwiiuse -lbte -lmad -lm -logc ../_lib/*.a
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
