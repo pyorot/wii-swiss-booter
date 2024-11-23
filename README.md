@@ -28,7 +28,7 @@ You can hold A for debug mode. This:
 - stalls the app to show where it found Swiss.
 
 ## Compilation
-It is recommended to use Linux or WSL, since the build scripts are Linux commands. To set up:
+It is recommended to use Linux or WSL, since the build scripts are Linux commands (so they fail if you have a space in your repository path 😤). To set up:
 - **libogc** is required; install it via [these instructions](https://devkitpro.org/wiki/Getting_Started) – for the Unix-like instructions, select the `wii-dev` group.
 - Ensure you have also [cloned the libruntimeiospatch submodule](https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules), which should appear in a `librip` folder within the root folder.
 
