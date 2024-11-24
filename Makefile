@@ -16,10 +16,10 @@ include $(DEVKITPPC)/wii_rules
 # INCLUDES is a list of directories containing extra header files
 #---------------------------------------------------------------------------------
 TARGET		:=	boot
-TARGETDIR	:=	_build
-BUILD		:=	_cache
+TARGETDIR	:=	_/build
+BUILD		:=	_/cache
 SOURCES		:=	src
-DATA		:=	_data
+DATA		:=	_/data
 INCLUDES	:=  librip/source
 
 #---------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ LDFLAGS	= -g $(MACHDEP) -Wl,-Map,$(notdir $@).map -Wl,--section-start,.init=0x80
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=-lfat -lwiiuse -lbte -lmad -lm -logc ../_lib/*.a
+LIBS	:=-lfat -lwiiuse -lbte -lmad -lm -logc ../lib/*.a
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -45,7 +45,7 @@ LIBDIRS	:= $(DEVKITPPC)/lib $(CURDIR)
 # no real need to edit anything past this point unless you need to add additional
 # rules for different file extensions
 #---------------------------------------------------------------------------------
-ifneq ($(BUILD),$(notdir $(CURDIR)))
+ifneq ($(notdir $(BUILD)), $(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
 export OUTPUT	:=	$(CURDIR)/$(TARGETDIR)/$(TARGET)

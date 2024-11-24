@@ -33,9 +33,9 @@ It is recommended to use Linux or WSL, since the build scripts are Linux command
 - Ensure you have also [cloned the libruntimeiospatch submodule](https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules), which should appear in a `librip` folder within the root folder.
 
 To compile, package and clean up, run commands in the repository root in a bash shell:
-1. **make/dl.sh** compiles the DolLoader binary to `/_data/dolloader.dol`.
-2. **make/librip.sh** compiles the libruntimeiospatch (librip) library to `/_lib/libruntimeiospatch.a`.
-3. With these two files generated, run **make** to compile the end product to `/_build/boot.dol` and `/_build/boot.elf`. This generates intermediate files in `/_cache`.
-4. This `boot.dol` file can be placed in the meta folder for a complete Homebrew Channel app package.
+1. **make/dl.sh** compiles the DolLoader binary to `_/data/dolloader.dol`.
+2. **make/librip.sh** compiles the libruntimeiospatch (librip) library to `_/lib/libruntimeiospatch.a`.
+3. With these two files generated, run **make** to compile the end product to `_/build/boot.dol` and `_/build/boot.elf`. This generates intermediate files in `_/cache`.
+4. With `boot.dol` generated, run **make/release.sh** to bundle it with the `meta` folder into a complete Homebrew Channel app package at `_/wii-swiss-booter.7z` (this requires p7zip: run `sudo apt install p7zip-full`).
 5. To avoid stale data, rebuild everything from scratch now and again by running **make/all.sh**.
-6. `_build`, `_cache`, `_data` and `_lib` can be deleted at any time.
+6. the `_` folder or any of its contents can be deleted at any time.
