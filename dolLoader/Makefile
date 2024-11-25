@@ -17,7 +17,7 @@ include $(DEVKITPPC)/gamecube_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	dolloader
 BUILD		:=	build
-SOURCES		:=	src
+SOURCES		:=	.
 DATA		:=	data  
 INCLUDES	:=
 

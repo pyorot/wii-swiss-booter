@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <app version="1.0">
 <name>Wii Swiss Booter</name>
-<version>1.0</version>
+<version>1.0+</version>
 	<release_date>202411231200</release_date>
 <coder>WiiPower, shoutplenty</coder>
 <short_description>Boots Swiss in GameCube mode</short_description>
