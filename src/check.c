@@ -1,5 +1,5 @@
 #include <gccore.h>
-#include "runtimeiospatch.h"
+#include "rtip.h"
 #include "booter.h"
 
 typedef enum {

@@ -1,6 +1,9 @@
 # Wii Swiss Booter
 
-Finds and boots [Swiss](https://github.com/emukidid/swiss-gc/) on a Wii in native GameCube mode using a cMIOS, and can be easily adapted to general GameCube software. It is needed because the Homebrew Channel cannot boot into GameCube mode by itself.
+> [!IMPORTANT]
+> **Swiss r1761 onwards includes a Wii booter with swiss.dol built in, which should be used instead of this**. However, both options suffer from an undiagnosed [memory corruption bug](https://github.com/pyorot/wii-swiss-booter/issues/4), likely in the cMIOS, that causes Swiss to fail to boot on some Wiis, either sometimes or always, despite all checks passing in this booter. Newer Wii hardware revisions are believed to be stable, else you can try to use an uncompressed swiss.dol, which you can construct from DOL/swiss_rxxxx.elf in a Swiss release using [elf2dol](https://wiibrew.org/wiki/ELF_to_DOL_Converter).
+
+This program finds and boots [Swiss](https://github.com/emukidid/swiss-gc/) on a Wii in native GameCube mode using a cMIOS, and can be easily adapted to general GameCube software. It's needed because the Homebrew Channel cannot boot into GameCube mode by itself.
 
 Original program by WiiPower (version 0.3 from 2011/01/15). Icon by Cisz. Check out the [program's thread](https://gbatemp.net/threads/wii-swiss-booter.277350/).
 
@@ -9,7 +12,7 @@ Extract the latest release .7z file into the root of your portable SD card or US
 
 This app requires a cMIOS. The installer of the standard cMIOS is available [here](https://www.mediafire.com/file/4utullykvbe2xlu/cMIOSWiiGator.7z/file). Run it from the Homebrew Channel as described in the previous paragraph. This in turn requires a cIOS, installed as per [here](https://wii.hacks.guide/cios).
 
-This app also requires a copy of Swiss of course, which can be downloaded from [here](https://github.com/emukidid/swiss-gc/releases). Download `swiss_r0000.7z`, where `0000` is replaced by the version you want, extract it, and navigate to the file `swiss_r0000\DOL\swiss_r0000.dol`. Rename it to `swiss.dol`, and place it on a device to go into your Wii.
+This app also requires a copy of Swiss of course, which can be downloaded from [here](https://github.com/emukidid/swiss-gc/releases). Download `swiss_r0000.7z`, where `0000` is replaced by the version you want, extract it, and navigate to the file `swiss_r0000\DOL\swiss_r0000.dol`. Rename it to `swiss.dol` and place it on a device to go into your Wii.
 
 ## Usage
 When you run Swiss Booter, it will look for `swiss.dol` and start the first copy it finds, searching in the order:
@@ -28,14 +31,11 @@ You can hold A for debug mode. This:
 - stalls the app to show where it found Swiss.
 
 ## Compilation
-It is recommended to use Linux or WSL, since the build scripts are Linux commands (so they fail if you have a space in your repository path 😤). To set up:
-- **libogc** is required; install it via [these instructions](https://devkitpro.org/wiki/Getting_Started) – for the Unix-like instructions, select the `wii-dev` group.
-- Ensure you have also [cloned the libruntimeiospatch submodule](https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules), which should appear in a `librip` folder within the root folder.
+It's recommended to use Linux or WSL, since the build scripts are Linux commands (so they fail if you have a space in your repository path 😤). To set up:
+1. **DevkitPPC** and **libogc** are required; install them via [these instructions](https://devkitpro.org/wiki/Getting_Started) – for the Unix-like instructions, select the `wii-dev` group.
+2. Clone this repository with:
+```
+git clone --recurse-submodules https://github.com/pyorot/wii-swiss-booter wii-swiss-booter
+```
 
-To compile, package and clean up, run commands in the repository root in a bash shell:
-1. **make/dl.sh** compiles the DolLoader binary to `_/data/dolloader.dol`.
-2. **make/librip.sh** compiles the libruntimeiospatch (librip) library to `_/lib/libruntimeiospatch.a`.
-3. With these two files generated, run **make** to compile the end product to `_/build/boot.dol` and `_/build/boot.elf`. This generates intermediate files in `_/cache`.
-4. With `boot.dol` generated, run **make/release.sh** to bundle it with the `meta` folder into a complete Homebrew Channel app package at `_/wii-swiss-booter.7z` (this requires p7zip: run `sudo apt install p7zip-full`).
-5. To avoid stale data, rebuild everything from scratch now and again by running **make/all.sh**.
-6. the `_` folder or any of its contents can be deleted at any time.
+This project uses the [systemwii Make setup](https://github.com/systemwii/make), whose readme explains build configuration. Compilation instructions are at the [Make Arguments](https://github.com/systemwii/make#make-arguments) section. In addition to `make build`, `make clean` and `make run`, use `make dist` to package the compiled program into a .7z archive of a Homebrew Channel app, to be extracted to the root of removable media (this requires p7zip: run `sudo apt install p7zip-full`). The build folder is `_` (likewise for all submodules), and its contents can be deleted at any time.
