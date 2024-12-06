@@ -4,3 +4,6 @@
 [submodule "lib/make"]
 	path = lib/make
 	url = https://github.com/systemwii/make.git
+[submodule "lib/monke"]
+	path = lib/monke
+	url = https://github.com/systemwii/monke.git

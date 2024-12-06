@@ -8,20 +8,20 @@ BUILD		:=	_
 CACHE		:=	_/cache
 
 # --- sources ---
-SRCS		 =	src
+SRCS		 =	src lib/monke/console
 SRCEXTS		 =	.c
 BINS		 =	$(wildcard lib/*/_)
 BINEXTS		 =	.dol
-LIBS		 =	-logc -lfat -lrtip
+LIBS		 =	-lrtip -logc -lfat
 LIBDIRSBNDLE =	$(wildcard lib/*/_)
 LIBDIRSLOOSE =	
 INCLUDES	 =	
 
 # --- flags ---
-CFLAGS		 =	-save-temps -g -O2 -Wall -Wno-unused-variable $(MACHDEP)
+CFLAGS		 =	-save-temps -g -O2 -Wall -Wno-unused-variable
 CXXFLAGS	 =	$(CFLAGS)
 ASFLAGS		 =	-D_LANGUAGE_ASSEMBLY
-LDFLAGS		 =	-g $(MACHDEP) -Wl,-Map,$(CACHE)/$(notdir $@).map
+LDFLAGS		 =	-g -Wl,-Map,$(CACHE)/$(notdir $@).map
 ARFLAGS		 =	rcs
 
 # --- runs the templates ---

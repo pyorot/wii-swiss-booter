@@ -18,17 +18,6 @@ enum OurErrors {
 	ERR_DOL_SIZE = -13,			ERR_DOL_ENTRY = -14,	// rare
 };
 
-// == video.c: a basic terminal ==
-#define CON_RED(str)		"\x1b[31;1m" str "\x1b[39m" // console text colours
-#define CON_GREEN(str)		"\x1b[32;1m" str "\x1b[39m"
-#define CON_YELLOW(str)		"\x1b[33;1m" str "\x1b[39m"
-#define CON_MAGENTA(str)	"\x1b[35;1m" str "\x1b[39m"
-#define CON_CYAN(str)		"\x1b[36;1m" str "\x1b[39m"
-#define CON_CLEAR()			"\x1b[2J" // signal text to clear console
-void videoInit();           // on program startup (configure registers, video mode, frame buffer)
-void videoClear();          // clear console
-void videoShow(bool show);  // toggle showing video vs black screen (hides transitions)
-
 // == device.c: removable storage devices ==
 typedef struct {
 	const char* name;					// for printing

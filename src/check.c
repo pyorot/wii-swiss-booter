@@ -1,6 +1,7 @@
 #include <gccore.h>
 #include "rtip.h"
 #include "booter.h"
+#include "console.h"
 
 typedef enum {
     MIOS_UNKNOWN, MIOS_ORIGINAL, CMIOS_STANDARD, CMIOS_OTHER, CMIOS_PAYLOAD,

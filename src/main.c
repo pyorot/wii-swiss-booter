@@ -7,6 +7,7 @@
 #include "booter.h"
 #include "config.h"
 #include "dolloader_dol.h" // generated in /_lib
+#include "console.h"
 
 char* errStr = "";
 int ret = 0;
@@ -107,22 +108,17 @@ int bootGCDol() {
 }
 
 int go() {
-	videoClear();
 	videoShow(true);
 	printf(WELCOME_TEXT);
-	VIDEO_WaitVSync(); // required to hold up program to detect button presses during init
-	if (PAD_ScanPads()) { // run setup tests if A held 
-		if (PAD_ButtonsHeld(0) & PAD_BUTTON_A) {
-			printf("Running tests...\n");
-			ret = testMIOS();
-			if (ret != 0) { return fail(); }
-		}
+	if (padScanOnNextFrame() && PAD_ButtonsHeld(0) & PAD_BUTTON_A) {	// run setup tests if A held
+		printf("Running tests...\n");
+		ret = testMIOS();
+		if (ret != 0) { return fail(); }
 	}
 	ret = findandLoadGCDol();
 	if (ret != 0) { return fail(); }; 
 	printf("Booting Dol...\n");
-	while (PAD_ScanPads()) { // while controller connected, stall if A held 
-		VIDEO_WaitVSync();
+	while (padScanOnNextFrame()) { // while controller connected, stall if A held 
 		if ((~PAD_ButtonsHeld(0)) & PAD_BUTTON_A) { break; }
 	}
 	ret = bootGCDol();
@@ -134,9 +130,8 @@ int fail() {
 	videoShow(true);
 	printf(CON_RED("ERROR | %s [%d]\n"), errStr, ret);
 	printf("Press A to retry or B to exit.\n");
-	while(PAD_ScanPads()) { // while controller connected, await input 
-		VIDEO_WaitVSync();
-		if (PAD_ButtonsDown(0) & PAD_BUTTON_A) { printf(CON_CLEAR()); usleep(300000); return go(); }
+	while (padScanOnNextFrame()) { // while controller connected, await input 
+		if (PAD_ButtonsDown(0) & PAD_BUTTON_A) { consoleClear(); usleep(300000); return go(); }
 		if (PAD_ButtonsDown(0) & PAD_BUTTON_B) { break; }
 	}
 	printf("Exiting...\n");
@@ -144,7 +139,6 @@ int fail() {
 }
 
 int main(int argc, char* argv[]) {
-	videoInit();
-	PAD_Init();
+	consoleInit();
 	return go();
 }
