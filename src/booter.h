@@ -14,7 +14,7 @@ extern int ret;
 enum OurErrors {
 	ERR_DENIED = -1,			ERR_MIOS_LOOKUP = -2,	// common
 	ERR_FATINIT = -3,			ERR_NOTFOUND = -4,		// common
-	ERR_MIOS_NOTFOUND = -11,	ERR_MIOS_SIZE = -12,	// rare
+	ERR_MIOS_NOTFOUND = -11,	ERR_MIOS_CORRUPT = -12,	// rare
 	ERR_DOL_SIZE = -13,			ERR_DOL_ENTRY = -14,	// rare
 };
 

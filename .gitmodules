@@ -1,9 +1,9 @@
-[submodule "lib/rtip"]
-	path = lib/rtip
-	url = https://github.com/systemwii/librtip.git
 [submodule "lib/make"]
 	path = lib/make
 	url = https://github.com/systemwii/make.git
 [submodule "lib/monke"]
 	path = lib/monke
 	url = https://github.com/systemwii/monke.git
+[submodule "lib/systitver"]
+	path = lib/systitver
+	url = https://github.com/systemwii/libsystitver.git

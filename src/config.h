@@ -17,7 +17,7 @@ const char* filepaths[3] = {
 	"/swiss.dol"
 };
 
-#define WELCOME_TEXT	"Wii Swiss Booter (v1.0)\n"\
+#define WELCOME_TEXT	"Wii Swiss Booter (v1.1)\n"\
 						"=======================\n"\
 						"\n"\
 						"This program will find and load the Dol file \"swiss.dol\".\n"
