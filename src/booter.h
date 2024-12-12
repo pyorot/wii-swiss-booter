@@ -12,10 +12,9 @@
 extern char* errStr;
 extern int ret;
 enum OurErrors {
-	ERR_DENIED = -1,			ERR_MIOS_LOOKUP = -2,	// common
-	ERR_FATINIT = -3,			ERR_NOTFOUND = -4,		// common
-	ERR_MIOS_NOTFOUND = -11,	ERR_MIOS_CORRUPT = -12,	// rare
-	ERR_DOL_SIZE = -13,			ERR_DOL_ENTRY = -14,	// rare
+	ERR_DENIED = -1,			ERR_MIOS_LOOKUP = -2,		ERR_NOTFOUND = -4,		// common
+	ERR_MIOS_NOTFOUND = -11,	ERR_MIOS_CORRUPT = -12,								// rare
+	ERR_DOL_SIZE = -13,			ERR_DOL_ENTRY = -14,								// rare
 };
 
 // == device.c: removable storage devices ==
@@ -23,7 +22,6 @@ typedef struct {
 	const char* name;					// for printing
 	const DISC_INTERFACE* interface;	// for interacting
 } device;
-int devicesInit();						// newly-required init routine (calls fatInitDefault)
 void deviceStop(device dev);			// dismount then shut-down of device
 int deviceStart(device dev);			// startup then mount of device
 

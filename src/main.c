@@ -12,9 +12,6 @@
 char* errStr = "";
 int ret = 0;
 
-// override to block IOS36 from loading at startup
-s32 __IOS_LoadStartupIOS() { return 0; }
-
 int loadGCDol(FILE* fp) {
 	u32 filesize = 0;	// size of Dol
 	u32 entrypoint;     // address of main() in Dol
@@ -45,20 +42,18 @@ int loadGCDol(FILE* fp) {
 };
 
 int findandLoadGCDol() {
-	static char buf[128];
+	static char filepath[128];
 	FILE* fp = NULL;
 	bool dolLoaded = false;
 
-	ret = devicesInit();
-	if (ret != 0) { errStr = "Failed to start file driver; ensure there's at least 1 device, remove any dodgy ones, and try again (you might need to exit the app)."; return ERR_FATINIT; }
 	for (int i = 0; i < sizeof(devices)/sizeof(device); i++) {
 		ret = deviceStart(devices[i]);
 		if (ret == 0) {
 			printf(CON_MAGENTA("%s") ": device mounted.\n", devices[i].name);
 			for (int j = 0; j < sizeof(filepaths)/sizeof(char*); j++) {
-				snprintf(buf, 5, "fat:");
-				snprintf(buf+4, 124, filepaths[j]);
-				fp = fopen(buf, "rb");
+				snprintf(filepath, 5, "fat:");
+				snprintf(filepath+4, 124, filepaths[j]);
+				fp = fopen(filepath, "rb");
 				if (fp != NULL)	{
 					printf(CON_GREEN("o | File opened: %s:%s.\n"), devices[i].name, filepaths[j]);
 					printf("Loading file to RAM...\n");
@@ -67,16 +62,14 @@ int findandLoadGCDol() {
 					if (ret != 0) { return ret; }
 					dolLoaded = true;
 					break;
-				} else {
+				} else { // non-fatal error (intended behaviour)
 					printf("x | %s: " CON_MAGENTA("%s") ":" CON_CYAN("%s") ".\n", strerror(errno), devices[i].name, filepaths[j]);
 				}
 			}
 			deviceStop(devices[i]);
 			if (dolLoaded) { break; }
-		} else {
-			// non-fatal error (intended behaviour)
-			errStr = ret == -1 ? "device didn't start (probably unplugged)" : CON_YELLOW("device didn't mount");
-			printf(CON_MAGENTA("%s") ": %s.\n", devices[i].name, errStr);
+		} else { // non-fatal error (intended behaviour)
+			printf(CON_MAGENTA("%s") ": device didn't %s (probably unplugged).\n", devices[i].name, ret == -1 ? "start" : "mount");
 		}
 	}
 	if (dolLoaded == false) { errStr = "Dol file not found; consult the readme for allowed locations."; return ERR_NOTFOUND; }
@@ -84,9 +77,7 @@ int findandLoadGCDol() {
 }
 
 // boots a Dol from memory
-static tikview view ATTRIBUTE_ALIGN(32);   // requires alignment, so static
 int bootGCDol() {
-	videoShow(false);
 	// copy the integrated DolLoader into RAM
 	memcpy((void*)0x80800000, dolloader_dol, dolloader_dol_size);
 	DCFlushRange((char*)0x80800000, dolloader_dol_size);
@@ -97,6 +88,7 @@ int bootGCDol() {
 	DCFlushRange((char*)0x807FFFE0, 32);
 	ICInvalidateRange((char*)0x807FFFE0, 32);
 	// get ticket
+	static tikview view ATTRIBUTE_ALIGN(32);   // requires alignment, so static
 	ret = ES_GetTicketViews(BC, &view, 1);
 	if (ret != 0) {	errStr = "(ES_GetTicketViews)"; return ret; }
 	// trigger gc mode
@@ -121,6 +113,7 @@ int go() {
 	while (padScanOnNextFrame()) { // while controller connected, stall if A held 
 		if ((~PAD_ButtonsHeld(0)) & PAD_BUTTON_A) { break; }
 	}
+	videoShow(false);
 	ret = bootGCDol();
 	if (ret != 0) { return fail(); };
 	return 0;
