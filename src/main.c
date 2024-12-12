@@ -6,40 +6,11 @@
 
 #include "booter.h"
 #include "config.h"
-#include "dolloader_dol.h" // generated in /_lib
+#include "execgcdol.h"
 #include "console.h"
 
 char* errStr = "";
 int ret = 0;
-
-int loadGCDol(FILE* fp) {
-	u32 filesize = 0;	// size of Dol
-	u32 entrypoint;     // address of main() in Dol
-	u8* baseAddress;	// address to load Dol to in RAM
-	// set filesize
-	fseek(fp, 0, SEEK_END);
-	filesize = ftell(fp);
-	if (filesize <= 0x100) { errStr = "Dol file's header is too small (<256B); file corrupted?"; return ERR_DOL_SIZE; }
-	// set entrypoint
-	fseek(fp, ADDR_ENTRYPOINT, SEEK_SET);
-	fread(&entrypoint, 4, 1, fp);
-	if (entrypoint < 0x80000000 || entrypoint >= 0x81800000) { errStr = "Dol file's entrypoint isn't a valid pointer; file corrupted?"; return ERR_DOL_ENTRY; }
-	// set baseAddress
-	if (entrypoint > 0x80700000) {
-		baseAddress = (u8*)0x80100000;
-	} else {
-		baseAddress = (u8*)0x80A00000;
-		memset((void*)0x80100000, 0, 32);
-		DCFlushRange((char*)0x80100000, 32);
-		ICInvalidateRange((char*)0x80100000, 32);
-	}
-	// read full Dol file into memory at baseAddress
-	fseek(fp, 0, SEEK_SET);
-	fread(baseAddress, filesize, 1, fp);
-	DCFlushRange(baseAddress, filesize);
-	ICInvalidateRange(baseAddress, filesize);				
-	return 0;
-};
 
 int findandLoadGCDol() {
 	static char filepath[128];
@@ -57,9 +28,10 @@ int findandLoadGCDol() {
 				if (fp != NULL)	{
 					printf(CON_GREEN("o | File opened: %s:%s.\n"), devices[i].name, filepaths[j]);
 					printf("Loading file to RAM...\n");
-					ret = loadGCDol(fp);
+					ret = EXECGCDOL_LoadFile(fp);
 					fclose(fp);
-					if (ret != 0) { return ret; }
+					if (ret == -1) { errStr = "Dol file's header is too small (<256B); file corrupted?"; return ERR_DOL_SIZE; }
+					if (ret == -2) { errStr = "Dol file's entrypoint isn't a valid pointer; file corrupted?"; return ERR_DOL_ENTRY; }
 					dolLoaded = true;
 					break;
 				} else { // non-fatal error (intended behaviour)
@@ -73,29 +45,6 @@ int findandLoadGCDol() {
 		}
 	}
 	if (dolLoaded == false) { errStr = "Dol file not found; consult the readme for allowed locations."; return ERR_NOTFOUND; }
-	return 0;
-}
-
-// boots a Dol from memory
-int bootGCDol() {
-	// copy the integrated DolLoader into RAM
-	memcpy((void*)0x80800000, dolloader_dol, dolloader_dol_size);
-	DCFlushRange((char*)0x80800000, dolloader_dol_size);
-	ICInvalidateRange((char*)0x80800000, dolloader_dol_size);
-	// tell the cMIOS to load the DolLoader
-	memset((void*)0x807FFFE0, 0, 32);
-	strcpy((char*)0x807FFFE0, "gchomebrew dol");
-	DCFlushRange((char*)0x807FFFE0, 32);
-	ICInvalidateRange((char*)0x807FFFE0, 32);
-	// get ticket
-	static tikview view ATTRIBUTE_ALIGN(32);   // requires alignment, so static
-	ret = ES_GetTicketViews(BC, &view, 1);
-	if (ret != 0) {	errStr = "(ES_GetTicketViews)"; return ret; }
-	// trigger gc mode
-	*(volatile unsigned int *)PI_CMD_REG |= 7;
-	// launch
-	ret = ES_LaunchTitle(BC, &view);
-	if (ret != 0) {	errStr = "(ES_LaunchTitle)"; return ret; } // probably only triggered if BC is broken
 	return 0;
 }
 
@@ -114,8 +63,8 @@ int go() {
 		if ((~PAD_ButtonsHeld(0)) & PAD_BUTTON_A) { break; }
 	}
 	videoShow(false);
-	ret = bootGCDol();
-	if (ret != 0) { return fail(); };
+	ret = EXECGCDOL_BootLoaded();
+	if (ret != 0) { errStr = "(EXECGCDOL_BootLoaded)"; return fail(); };
 	return 0;
 }
 
