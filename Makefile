@@ -10,9 +10,9 @@ CACHE		:=	_/cache
 # --- sources ---
 SRCS		 =	src lib/monke/console
 SRCEXTS		 =	.c
-BINS		 =	$(wildcard lib/*/_)
-BINEXTS		 =	.dol
-LIBS		 =	-lsystitver -logc -lfat
+BINS		 =	
+BINEXTS		 =	
+LIBS		 =	-lexecgcdol -lsystitver -logc -lfat
 LIBDIRSBNDLE =	$(wildcard lib/*/_)
 LIBDIRSLOOSE =	
 INCLUDES	 =	

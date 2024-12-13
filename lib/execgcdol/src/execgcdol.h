@@ -1,3 +1,6 @@
+#pragma once
+#pragma GCC visibility push(default)
+
 #include <stdio.h>
 
 int EXECGCDOL_LoadFile(FILE* fp);   // loads a GameCube Dol from file to memory; returns:
@@ -7,3 +10,5 @@ int EXECGCDOL_LoadFile(FILE* fp);   // loads a GameCube Dol from file to memory;
 int EXECGCDOL_BootLoaded(void);     // boots a GameCube Dol from memory; returns:
                                     //    0: success (doesn't really return at all)
                                     //    *: ES errors (https://wiibrew.org/wiki//dev/es)
+
+#pragma GCC visibility pop
