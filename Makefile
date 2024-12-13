@@ -8,11 +8,11 @@ BUILD		:=	_
 CACHE		:=	_/cache
 
 # --- sources ---
-SRCS		 =	src lib/monke/console
+SRCS		 =	lib/execgcdol lib/monke/console
 SRCEXTS		 =	.c
 BINS		 =	
 BINEXTS		 =	
-LIBS		 =	-lexecgcdol -lsystitver -logc -lfat
+LIBS		 =	-lexecgcdol -lfat -logc
 LIBDIRSBNDLE =	$(wildcard lib/*/_)
 LIBDIRSLOOSE =	
 INCLUDES	 =	

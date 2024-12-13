@@ -21,7 +21,7 @@ INCLUDES	 =
 CFLAGS		 =	-save-temps -g -O2 -Wall -Wno-unused-variable $(MACHDEP)
 CXXFLAGS	 =	$(CFLAGS)
 ASFLAGS		 =	-D_LANGUAGE_ASSEMBLY
-LDFLAGS		 =	-g $(MACHDEP) -Wl,--section-start,.init=0x80700000,-Map,$(CACHE)/$(notdir $@).map
+LDFLAGS		 =	-g $(MACHDEP) -Wl,-Map,$(CACHE)/$(notdir $@).map
 ARFLAGS		 =	rcs
 
 # --- runs the templates ---

@@ -1,10 +1,12 @@
 // this compiles to a dol that's injected as a blob into another dol
 // when executed, it starts a different dol in place of booting the disc
 
+#include <stdio.h>
 #include <string.h>
 #include <ogcsys.h>
 #include <ogc/machine/processor.h>
 #include <ogc/lwp_watchdog.h>
+#include <unistd.h>
 
 extern void __exception_closeall(void);
 
@@ -49,8 +51,10 @@ int load_dol(void) {
 	void (*entry_point)();
 	unsigned long level = 0;
 
+	sleep(3);
 	data = (*(u32*)0x80100000 == 0x100) ? 0x80100000 : 0x80A00000;
 	entry_point = (void(*)())load_dol_image((void *)data);
+	sleep(3);
 
 	settime(secs_to_ticks(time(NULL) - 946684800));
 	_CPU_ISR_Disable(level);
@@ -67,7 +71,7 @@ void wii_dvd_reset_unlock(void) {
 	volatile unsigned long *phys_ios_magic = (unsigned long *) 0xC00030F8;
 
 	*pi_cmd |= 7; // I assume this will synchronize with Starlet/MIOS.
-	*ios_magic = 0xDEAEBEEF;
+	*ios_magic = 0xDEADBEEF;
 	DCFlushRange((void *) ios_sync_base, 32);
 	while (*phys_ios_magic != 0); // I assume this waits for Starlet.
 }
