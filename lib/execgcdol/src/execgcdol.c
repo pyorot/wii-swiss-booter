@@ -2,9 +2,22 @@
 #include <gccore.h>
 #include "execgcdol.h"
 #include "dolloader_dol.h" // generated in _/cache/data
+#include "sha1.h"
 
-#define BC      0x0000000100000100ULL   // title ID of GameCube bootloader
-#define PI_CMD_REG      0xCC003024      // memory address set for GameCube mode
+typedef struct {
+	u32 magic;
+	u32 size;
+	u8 hash[20];
+	u8* payloads[9];
+} __attribute__((packed)) CMIOSTag;
+
+static void* cmiosTagLoc = (void*)0x80001800;
+static CMIOSTag cmiosTag = {
+	.magic = 0x1d0110ad,
+	.size = 0xa8ea8,
+    .payloads = {(u8*)0x80300000, (u8*)0x80500020, (u8*)0x80700060, (u8*)0x80a00080, (u8*)0x80c00040},
+};
+
 #define ADDR_ENTRYPOINT 0xE0            // memory address of entrypoint in Dol header
 
 int EXECGCDOL_LoadFile(FILE* fp) {
@@ -21,39 +34,37 @@ int EXECGCDOL_LoadFile(FILE* fp) {
     fread(&entrypoint, 4, 1, fp);
     printf("entrypoint:  0x%8x\n", entrypoint);
     if (entrypoint < 0x80000000 || entrypoint >= 0x81800000) { return -2; }
-    // set baseAddress
-    if (entrypoint > 0x80700000) {
-        baseAddress = (u8*)0x80100000;
-    } else {
-        baseAddress = (u8*)0x80800000;
-        memset((void*)0x80100000, 0, 32);
-        DCFlushRange((char*)0x80100000, 32);
-        ICInvalidateRange((char*)0x80100000, 32);
+    // read full Dol file into memory at cmiosTag.payloads
+    for (int i=0; i<sizeof(cmiosTag.payloads)/sizeof(cmiosTag.payloads[0]); i++) {
+        if ((u32)cmiosTag.payloads[i] < 0x80000000 || (u32)cmiosTag.payloads[i] >= 0x81800000) { continue; }
+        printf("swiss.dol  : %p -- %p\n", cmiosTag.payloads[i], cmiosTag.payloads[i]+filesize);
+        fseek(fp, 0, SEEK_SET);
+        fread(cmiosTag.payloads[i], filesize, 1, fp);
+        //*(volatile u32*)(0x803a8010) = 0;
+        DCFlushRange(cmiosTag.payloads[i], filesize);
+        ICInvalidateRange(cmiosTag.payloads[i], filesize);
     }
-    printf("swiss.dol  : %p -- %p\n", baseAddress, baseAddress+filesize);
-    // read full Dol file into memory at baseAddress
-    fseek(fp, 0, SEEK_SET);
-    fread(baseAddress, filesize, 1, fp);
-    DCFlushRange(baseAddress, filesize);
-    ICInvalidateRange(baseAddress, filesize);
+    // hash
+    printf("hash");
+    cmiosTag.size = filesize;
+    for (int i=sizeof(cmiosTag.payloads)/sizeof(cmiosTag.payloads[0])-1; i>=0; i--) {
+        if ((u32)cmiosTag.payloads[i] < 0x80000000 || (u32)cmiosTag.payloads[i] >= 0x81800000) { continue; }
+        SHA1(cmiosTag.payloads[i], cmiosTag.size, cmiosTag.hash);
+        printf(" %02x%02x", cmiosTag.hash[0], cmiosTag.hash[1]);
+    }
+    printf("\n");
     return 0;
 };
 
 // boots a Dol from memory
 int EXECGCDOL_BootLoaded() {
-    /*// copy the integrated DolLoader into RAM
-    printf("dL (ours) size: %d\n", dolloader_dol_size);
-    memcpy((void*)0x80800000, dolloader_dol, dolloader_dol_size);
-    DCFlushRange((char*)0x80800000, dolloader_dol_size);
-    ICInvalidateRange((char*)0x80800000, dolloader_dol_size);
-    printf("dL.dol     : 0x%8x -- 0x%8x\n", 0x80800000, 0x80800000+dolloader_dol_size);
-    */// tell the cMIOS to load the DolLoader
+    /*// tell the cMIOS to load the DolLoader
     memset((void*)0x807FFFE0, 0, 32);
     strcpy((char*)0x807FFFE0, "gchomebrew dol");
     DCFlushRange((char*)0x807FFFE0, 32);
-    ICInvalidateRange((char*)0x807FFFE0, 32);
-    // trigger gc mode
-    *(volatile unsigned int *)PI_CMD_REG |= 7;
-    // launch
+    ICInvalidateRange((char*)0x807FFFE0, 32);*/
+    memcpy(cmiosTagLoc, &cmiosTag, sizeof(cmiosTag));
+    DCFlushRange(cmiosTagLoc, sizeof(cmiosTag));
+    ICInvalidateRange(cmiosTagLoc, sizeof(cmiosTag));
     return 0;
 }

@@ -8,7 +8,7 @@ BUILD		:=	_
 CACHE		:=	_/cache
 
 # --- sources ---
-SRCS		 =	src
+SRCS		 =	src ../monke/sha1
 SRCEXTS		 =	.c
 BINS		 =  $(wildcard lib/*/_)
 BINEXTS		 =  .dol
