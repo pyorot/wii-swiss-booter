@@ -10,7 +10,6 @@
 #include "console.h"
 
 #define BC      0x0000000100000100ULL   // title ID of GameCube bootloader
-#define PI_CMD_REG      0xCC003024      // memory address set for GameCube mode
 
 char* errStr = "";
 int ret = 0;
@@ -26,34 +25,17 @@ int go() {
     ret = EXECGCDOL_LoadFile(fp);
     fclose(fp);
     if (ret != 0) { errStr = "(EXECGCDOL_LoadFile)"; return fail(); };
-	printf("Booting Dol...\n");
-    EXECGCDOL_BootLoaded(); sleep(1);
+	sleep(1);
 	while (padScanOnNextFrame()) { // while controller connected, stall if A held 
 		if ((~PAD_ButtonsHeld(0)) & PAD_BUTTON_A) { break; }
 	}
-	//sleep(3); return 0;
 
-#if 0
-    // gc reset
-    *(volatile unsigned int *)PI_CMD_REG |= 7;
-    printf(CON_MAGENTA("PI_CMD_REG |= 7\n"));
-#else
-    printf(CON_CYAN("No PI_CMD_REG |= 7\n"));
-#endif
-	
-#if 0
-    printf(CON_MAGENTA("Launching (WII_LaunchTitle)...\n"));
-	ret = WII_LaunchTitle(BC);
-	if (ret != 0) { errStr = "(EXECGCDOL_BootLoaded)"; return fail(); };
-	return 0;
-#else
-	printf(CON_CYAN("Launching (ES_LaunchTitle)...\n"));
+	printf(CON_CYAN("Launching...\n"));
     static tikview view ATTRIBUTE_ALIGN(32); // requires alignment, so static
     ret = ES_GetTicketViews(BC, &view, 1);
     if (ret != 0) {	errStr = "(ES_GetTicketViews)"; return fail(); }
     ret = ES_LaunchTitle(BC, &view);
-    return ret;
-#endif
+	return ret;
 }
 
 int fail() {

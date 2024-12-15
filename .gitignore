@@ -1,5 +1,6 @@
 # for our (out-of-tree) build folder settings
 _
+__
 # for devkitpro's default (in-tree) build folder settings
 build
 *.a

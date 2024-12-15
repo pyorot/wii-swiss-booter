@@ -4,8 +4,8 @@
 TARGET		:=	boot
 TYPE		:=  dol
 PLATFORM	:=	wii
-BUILD		:=	_
-CACHE		:=	_/cache
+BUILD		:=	__
+CACHE		:=	__/cache
 
 # --- sources ---
 SRCS		 =	lib/execgcdol lib/monke/console
