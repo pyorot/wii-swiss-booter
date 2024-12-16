@@ -9,6 +9,8 @@
 #include "execgcdol.h"
 #include "console.h"
 
+#define INJECTED	// load injected swiss.dol binary from cmios
+
 #define BC      0x0000000100000100ULL   // title ID of GameCube bootloader
 
 char* errStr = "";
@@ -19,18 +21,23 @@ int go() {
 	videoShow(true);
 	printf("== ExecGCDol ==\n\n");
 
+#ifdef INJECTED
+	EXECGCDOL_Signal(0x50155d01);
+#else
     if (!fatInitDefault()) { errStr = "(fatInitDefault)"; return fail(); }; 
     FILE* fp = fopen("usb:/apps/Swiss/swiss.dol", "rb");
     if (!fp) { errStr = strerror(errno); return fail(); };
     ret = EXECGCDOL_LoadFile(fp);
     fclose(fp);
     if (ret != 0) { errStr = "(EXECGCDOL_LoadFile)"; return fail(); };
+#endif
+
 	sleep(1);
 	while (padScanOnNextFrame()) { // while controller connected, stall if A held 
 		if ((~PAD_ButtonsHeld(0)) & PAD_BUTTON_A) { break; }
 	}
 
-	printf(CON_CYAN("Launching...\n"));
+	printf(CON_CYAN("Launching...\n")); // dunno if better to use WII_LaunchTitle
     static tikview view ATTRIBUTE_ALIGN(32); // requires alignment, so static
     ret = ES_GetTicketViews(BC, &view, 1);
     if (ret != 0) {	errStr = "(ES_GetTicketViews)"; return fail(); }

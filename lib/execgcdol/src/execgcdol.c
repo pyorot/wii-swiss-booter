@@ -27,7 +27,6 @@ int EXECGCDOL_LoadFile(FILE* fp) {
         printf("swiss.dol  : %p -- %p\n", cmiosTag.payloads[i], cmiosTag.payloads[i]+cmiosTag.size);
         fseek(fp, 0, SEEK_SET);
         fread(cmiosTag.payloads[i], cmiosTag.size, 1, fp);
-        //*(volatile u32*)(0x803a8010) = 0;
         DCFlushRange(cmiosTag.payloads[i], cmiosTag.size);
         ICInvalidateRange(cmiosTag.payloads[i], cmiosTag.size);
     }
@@ -48,4 +47,10 @@ int EXECGCDOL_LoadFile(FILE* fp) {
     DCFlushRange((char*)0x807FFFE0, 32);
     ICInvalidateRange((char*)0x807FFFE0, 32);*/
     return 0;
+}
+
+void EXECGCDOL_Signal(u32 signal) {
+    *(u32*)0x80001800 = signal;
+    DCFlushRange((void*)0x80001800, 4);
+    ICInvalidateRange((void*)0x80001800, 4);    
 }
