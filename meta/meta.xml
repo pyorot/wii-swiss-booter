@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <app version="1.0">
 <name>Wii Swiss Booter</name>
-<version>1.0+</version>
-	<release_date>202411231200</release_date>
+<version>1.1</version>
+	<release_date>202412312000</release_date>
 <coder>WiiPower, shoutplenty</coder>
 <short_description>Boots Swiss in GameCube mode</short_description>
-<long_description>This booter finds Swiss on your removable media and boots it in native GameCube mode. You need to have a cMIOS installed.
+<long_description>This booter finds Swiss on your removable media and boots it in native GameCube mode. You need to have a cMIOS installed. If your cMIOS has Swiss installed into it then you can boot into it without loading from files by holding Y.
 
 To find Swiss, this app checks, in order:
   SD Gecko (left slot), SD Gecko (right slot), Wii SD (front slot), either USB port.

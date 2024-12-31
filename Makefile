@@ -16,6 +16,7 @@ LIBS		 =	-lsystitver -logc -lfat
 LIBDIRSBNDLE =	$(wildcard lib/*/_)
 LIBDIRSLOOSE =	
 INCLUDES	 =	
+LIBOGC		 =	$(DEVKITPRO)/libogc
 
 # --- flags ---
 CFLAGS		 =	-save-temps -g -O2 -Wall -Wno-unused-variable

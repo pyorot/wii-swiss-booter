@@ -1,7 +1,7 @@
 # Wii Swiss Booter
 
 > [!IMPORTANT]
-> **Swiss r1761 onwards includes a Wii booter with swiss.dol built in, which should be used instead of this**. However, both options suffer from an undiagnosed [memory corruption bug](https://github.com/pyorot/wii-swiss-booter/issues/4), likely in the cMIOS, that causes Swiss to fail to boot on some Wiis, either sometimes or always, despite all checks passing in this booter. Newer Wii hardware revisions are believed to be stable, else you can try to use this app with an uncompressed swiss.dol, which you can construct from `DOL/swiss_rxxxx.elf` from a Swiss release using [elf2dol](https://wiibrew.org/wiki/ELF_to_DOL_Converter).
+> **Older Wiis may often crash when booting Swiss from a file** owing to a [memory corruption bug](https://github.com/pyorot/debug-cmios/). This can be fixed by using this app in direct-boot mode (holding Y) with a [cMIOS with Swiss built-in](https://github.com/pyorot/debug-cmios/releases) installed to your Wii. For newer Wiis that boot Swiss reliably from a file, you may use a [recent Swiss release](https://github.com/emukidid/swiss-gc/releases) (r1788 onwards includes a Wii booter) instead of this app.
 
 This program finds and boots [Swiss](https://github.com/emukidid/swiss-gc/) on a Wii in native GameCube mode using a cMIOS, and can be easily adapted to general GameCube software. It's needed because the Homebrew Channel cannot boot into GameCube mode by itself.
 
@@ -25,6 +25,8 @@ Within each drive, it searches in the order:
 1. `A:/apps/Swiss/swiss.dol`
 2. `A:/apps/swiss.dol`
 3. `A:/swiss.dol`
+
+If you hold Y, Swiss Booter will not load anything to memory and instead directly boot into the MIOS. This is useful if your cMIOS has Swiss built-in for example. 
 
 You can hold A for debug mode. This:
 - tests your MIOS for compatibility with Swiss;

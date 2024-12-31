@@ -9,6 +9,8 @@
 #include "execgcdol.h"
 #include "console.h"
 
+#define BC 0x0000000100000100ULL	// title ID of GameCube bootloader
+
 char* errStr = "";
 int ret = 0;
 
@@ -51,21 +53,32 @@ int findandLoadGCDol() {
 int go() {
 	videoShow(true);
 	printf(WELCOME_TEXT);
-	if (padScanOnNextFrame() && PAD_ButtonsHeld(0) & PAD_BUTTON_A) {	// run setup tests if A held
+
+	// run setup tests if A held
+	if (padScanOnNextFrame() && PAD_ButtonsHeld(0) & PAD_BUTTON_A) {
 		printf("Running tests...\n");
 		ret = testMIOS();
 		if (ret != 0) { return fail(); }
 	}
-	ret = findandLoadGCDol();
-	if (ret != 0) { return fail(); }; 
-	printf("Booting Dol...\n");
-	while (padScanOnNextFrame()) { // while controller connected, stall if A held 
+
+	// load payload from file, or no payload if Y held
+	if (padScanOnNextFrame() && PAD_ButtonsHeld(0) & PAD_BUTTON_Y) {
+		printf("Booting MIOS directly...\n");
+	} else {
+		ret = findandLoadGCDol();
+		if (ret != 0) { return fail(); }; 
+		EXECGCDOL_LoadBooter();
+		printf("Booting Dol from file...\n");
+	}
+
+	// while controller connected, stall if A held 
+	while (padScanOnNextFrame()) {
 		if ((~PAD_ButtonsHeld(0)) & PAD_BUTTON_A) { break; }
 	}
+
+    // launch title
 	videoShow(false);
-	ret = EXECGCDOL_BootLoaded();
-	if (ret != 0) { errStr = "(EXECGCDOL_BootLoaded)"; return fail(); };
-	return 0;
+    return WII_LaunchTitle(BC);
 }
 
 int fail() {

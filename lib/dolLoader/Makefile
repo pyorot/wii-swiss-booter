@@ -16,6 +16,7 @@ LIBS		 =	-logc
 LIBDIRSBNDLE =	
 LIBDIRSLOOSE =	
 INCLUDES	 =	
+LIBOGC		 =	$(DEVKITPRO)/libogc
 
 # --- flags ---
 CFLAGS		 =	-save-temps -g -O2 -Wall -Wno-unused-variable $(MACHDEP)
